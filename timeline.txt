@@ -1,0 +1,4 @@
+1.Router morgan bodyuparser is studied
+2.npm install -g express-generator
+3.experss folder name(conFusionServer)
+4.npm install to install all packages automatically
