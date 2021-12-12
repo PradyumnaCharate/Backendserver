@@ -5,6 +5,13 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+
+//express sessions
+var session=require("express-session");
+//to store session info into file store..it takes session object we created as paramaeter.
+//this will save session info into session folder
+var FileStore=require("session-file-store")(session) ;
+
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishesRouter = require('./routes/dishRouter');
@@ -30,15 +37,23 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser("12345-67890-09876-54321"));
+//app.use(cookieParser("12345-67890-09876-54321"));
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  //we will use FileStore object we created above
+  store: new FileStore()
+}));
 
 function auth(req,res,next){
   //middleware parses and in req signed cookies
-  console.log(req.signedCookies);
+  console.log(req.session);
   //If cookie is not there then we search authentication info if not there ask,if wrong then deny if correct info 
   //then create and send signed cookie to him in response
   //.user because down below we are going to create cookie named user..
-  if(!req.signedCookies.user){
+  if(!req.session.user){
     var authHeader=req.headers.authorization;
     if (!authHeader){
       //If no authorization info is found
@@ -57,7 +72,7 @@ function auth(req,res,next){
     if (username=="admin" && password =="password"){
       //So if matches then it goes to next middleware
       //this will set cookie on client side after succesfull authentication
-      res.cookie("user","admin",{signed:true})
+      req.session.user="admin"
       next();
     }
     else{
@@ -70,7 +85,7 @@ function auth(req,res,next){
 
   }
   else {
-    if (req.signedCookies.user === 'admin') {
+    if (req.session.user === 'admin') {
         next();
     }
     else{
