@@ -47,53 +47,28 @@ app.use(session({
   store: new FileStore()
 }));
 
+//Before login/authenticating user can only acess index or user router
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 function auth(req,res,next){
-  //middleware parses and in req signed cookies
+
   console.log(req.session);
-  //If cookie is not there then we search authentication info if not there ask,if wrong then deny if correct info 
-  //then create and send signed cookie to him in response
-  //.user because down below we are going to create cookie named user..
-  if(!req.session.user){
-    var authHeader=req.headers.authorization;
-    if (!authHeader){
-      //If no authorization info is found
-      var err=new Error("You are not authorized");
-      res.setHeader("WWW-Authenticate","Basic");
-      err.status=401;
-      return next(err);
-    }
-    //If authHeader is not empty then it contains Basic username:password so we will cut this string into two parts 
-    //Basic and another part will be user and pass.Buffer helps us in splitting and in return we will get array...
-    //0th element is basic and 1st element is encoding then we will again split the encoding into user and pass
-    //split by : because iut seperated them
-    var auth=new Buffer.from(authHeader.split(" ")[1],"base64").toString().split(":")
-    var username=auth[0];
-    var password=auth[1];
-    if (username=="admin" && password =="password"){
-      //So if matches then it goes to next middleware
-      //this will set cookie on client side after succesfull authentication
-      req.session.user="admin"
+  //if no session
+  if(!req.session.user) {
+    var err = new Error('You are not authenticated!');
+    err.status = 403;
+    return next(err);
+}
+  else {
+    //in user.js upon succesfull authentication we have set user to authenticated so wil check that here
+    if (req.session.user === 'authenticated') {
       next();
     }
-    else{
-      var err=new Error("Send Correct Authorization lawdya");
-      res.setHeader("WWW-Authenticate","Basic");
-      err.status=401;
+    else {
+      var err = new Error('You are not authenticated!');
+      err.status = 403;
       return next(err);
-
-    }
-
-  }
-  else {
-    if (req.session.user === 'admin') {
-        next();
-    }
-    else{
-      var err=new Error("Send Correct cookie lawdya");
-      res.setHeader("WWW-Authenticate","Basic");
-      err.status=401;
-      return next(err);
-
     }
   }
   
@@ -105,8 +80,7 @@ app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
 app.use("/dishes",dishesRouter);
 app.use("/leaders",leadersRouter);
 app.use("/promotions",promotionsRouter);

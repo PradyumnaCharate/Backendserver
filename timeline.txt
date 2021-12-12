@@ -6,3 +6,6 @@
 6.To start mongoDB server in folder command is mongod --dbpath=data --bind_ip 127.0.0.1
 7.use conFusion to create database
 8.db.dishes.insert()--to insert into collection
+9.we handled each http request for dishes ,leaders,promotions connecting to database.
+10.then we created basic authentication saw cookie and sessions.
+11.we have to now create new user new schema to enter new user into database.
