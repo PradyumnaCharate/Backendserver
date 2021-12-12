@@ -2,3 +2,7 @@
 2.npm install -g express-generator
 3.experss folder name(conFusionServer)
 4.npm install to install all packages automatically
+5.all server info is in www
+6.To start mongoDB server in folder command is mongod --dbpath=data --bind_ip 127.0.0.1
+7.use conFusion to create database
+8.db.dishes.insert()--to insert into collection
