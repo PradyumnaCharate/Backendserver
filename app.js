@@ -11,7 +11,8 @@ var session=require("express-session");
 //to store session info into file store..it takes session object we created as paramaeter.
 //this will save session info into session folder
 var FileStore=require("session-file-store")(session) ;
-
+var passport=require("passport");
+var authenticate=require("./authenticate");
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishesRouter = require('./routes/dishRouter');
@@ -24,7 +25,7 @@ const Dishes =require("./models/dishes");
 const url = 'mongodb://localhost:27017/conFusion';
 const connect=mongoose.connect(url);
 connect.then((db)=>{
-  console.log("COnnected to the Database")
+  console.log("Connected to the Database")
 },(err)=>{console.log(err);});
 
 
@@ -47,29 +48,33 @@ app.use(session({
   store: new FileStore()
 }));
 
+
+
+//if user is logged in session is initiated 
+//req.user will be added when we make call to passport.authnticate in login route
+//passport session that we have done below will automatically serialize that user information and store it into session
+//and when next time user sends session cookie then this will load req.user automaticallyu in request
+app.use(passport.initialize());
+app.use(passport.session());
+
 //Before login/authenticating user can only acess index or user router
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
 function auth(req,res,next){
 
-  console.log(req.session);
-  //if no session
-  if(!req.session.user) {
+  //req.user is loaded by passport
+  if(!req.user) {
     var err = new Error('You are not authenticated!');
     err.status = 403;
     return next(err);
 }
   else {
     //in user.js upon succesfull authentication we have set user to authenticated so wil check that here
-    if (req.session.user === 'authenticated') {
+    //if req.user is not present that means authentication is not done correctly otherwise if it is present then passport has already
+    //verified the user and authenticated
       next();
-    }
-    else {
-      var err = new Error('You are not authenticated!');
-      err.status = 403;
-      return next(err);
-    }
+   
   }
   
 
