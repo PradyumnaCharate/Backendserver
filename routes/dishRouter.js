@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser=require("body-parser");
 const mongoose=require("mongoose");
 const Dishes=require("../models/dishes");
+const authenticate=require("../authenticate");
 
 const dishRouter=express.Router();
 dishRouter.use(bodyParser.json());
@@ -20,7 +21,9 @@ dishRouter.route("/")
 
 //now if we get a post request for dishes then app.all will execute firstly and because of next that will be dropped to this post
 //because this is post request body will contain some information in json format
-.post((req,res,next)=>{
+
+//If post request comes then we will first check jwt token with verifyUser.
+.post(authenticate.verifyUser,(req,res,next)=>{
     Dishes.create(req.body)
     .then((dish) => {
         res.statusCode = 200;
@@ -32,13 +35,13 @@ dishRouter.route("/")
 })
 
 
-.put((req,res,next)=>{
+.put(authenticate.verifyUser,(req,res,next)=>{
     res.statusCode=403;
     res.end("Put Not Supported")
 
 })
 
-.delete((req,res,next)=>{
+.delete(authenticate.verifyUser,(req,res,next)=>{
     Dishes.remove({})
     .then((dishes) => {
         res.statusCode = 200;
@@ -63,7 +66,7 @@ dishRouter.route("/:dishId")
 
 //now if we get a post request for dishes then app.all will execute firstly and because of next that will be dropped to this post
 //because this is post request body will contain some information in json format
-.post((req,res,next)=>{
+.post(authenticate.verifyUser,(req,res,next)=>{
     res.statusCode=403;
     res.end("Post Not Supported on " + req.params.dishId  )
     
@@ -71,7 +74,7 @@ dishRouter.route("/:dishId")
 })
 
 
-.put((req,res,next)=>{
+.put(authenticate.verifyUser,(req,res,next)=>{
     Dishes.findByIdAndUpdate(req.params.dishId,{$set:req.body
     },{new:true})
     .then((dish) => {
@@ -82,7 +85,7 @@ dishRouter.route("/:dishId")
     .catch((err) => next(err));
 })
 
-.delete((req,res,next)=>{
+.delete(authenticate.verifyUser,(req,res,next)=>{
     Dishes.findByIdAndRemove(req.params.dishId)
     .then((dish) => {
         res.statusCode = 200;
@@ -113,7 +116,7 @@ dishRouter.route("/:dishId/comments")
 
 //now if we get a post request for dishes then app.all will execute firstly and because of next that will be dropped to this post
 //because this is post request body will contain some information in json format
-.post((req, res, next) => {
+.post(authenticate.verifyUser,(req, res, next) => {
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null) {
@@ -134,13 +137,13 @@ dishRouter.route("/:dishId/comments")
     .catch((err) => next(err));
 })
 
-.put((req,res,next)=>{
+.put(authenticate.verifyUser,(req,res,next)=>{
     res.statusCode=403;
     res.end("Put Not Supported")
 
 })
 
-.delete((req,res,next)=>{
+.delete(authenticate.verifyUser,(req,res,next)=>{
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if(dish!=null){
@@ -190,7 +193,7 @@ dishRouter.route("/:dishId/comments/:commentId")
 
 //now if we get a post request for dishes then app.all will execute firstly and because of next that will be dropped to this post
 //because this is post request body will contain some information in json format
-.post((req,res,next)=>{
+.post(authenticate.verifyUser,(req,res,next)=>{
     res.statusCode=403;
     res.end("Post Not Supported on " + req.params.dishId  )
     
@@ -198,7 +201,7 @@ dishRouter.route("/:dishId/comments/:commentId")
 })
 
 
-.put((req,res,next)=>{
+.put(authenticate.verifyUser,(req,res,next)=>{
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {
@@ -229,7 +232,7 @@ dishRouter.route("/:dishId/comments/:commentId")
     .catch((err) => next(err));
 })
 
-.delete((req,res,next)=>{
+.delete(authenticate.verifyUser,(req,res,next)=>{
     Dishes.findById(req.params.dishId)
     .then((dish) => {
         if (dish != null && dish.comments.id(req.params.commentId) != null) {

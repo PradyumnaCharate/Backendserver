@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser=require("body-parser");
 const mongoose=require("mongoose");
 const Promotions=require("../models/promotions");
+const authenticate=require("../authenticate");
 
 const promotionRouter=express.Router();
 promotionRouter.use(bodyParser.json());
@@ -20,7 +21,7 @@ promotionRouter.route("/")
 
 //now if we get a post request for promotions then app.all will execute firstly and because of next that will be dropped to this post
 //because this is post request body will contain some information in json format
-.post((req,res,next)=>{
+.post(authenticate.verifyUser,(req,res,next)=>{
     Promotions.create(req.body)
     .then((promotion)=>{
         res.statusCode=200,
@@ -32,13 +33,13 @@ promotionRouter.route("/")
 })
 
 
-.put((req,res,next)=>{
+.put(authenticate.verifyUser,(req,res,next)=>{
     res.statusCode=403;
     res.end("Put Not Supported")
 
 })
 
-.delete((req,res,next)=>{
+.delete(authenticate.verifyUser,(req,res,next)=>{
     Promotions.remove({})
     .then((resp)=>{
         res.statusCode=200,
@@ -64,14 +65,14 @@ promotionRouter.route("/:promotionId")
 
 //now if we get a post request for Promotions then app.all will execute firstly and because of next that will be dropped to this post
 //because this is post request body will contain some information in json format
-.post((req,res,next)=>{
+.post(authenticate.verifyUser,(req,res,next)=>{
     res.statusCode=403;
     res.end("Post Not Supported on " + req.params.promotionId  )
 
 })
 
 
-.put((req,res,next)=>{
+.put(authenticate.verifyUser,(req,res,next)=>{
     Promotions.findByIdAndUpdate(req.params.promotionId,{$set:req.body},{new:true})
     .then((promotion)=>{
         res.statusCode=200;
@@ -82,7 +83,7 @@ promotionRouter.route("/:promotionId")
     
 })
 
-.delete((req,res,next)=>{
+.delete(authenticate.verifyUser,(req,res,next)=>{
     Promotions.findByIdAndRemove(req.params.promotionId)
     .then((resp)=>{
         res.statusCode=200;

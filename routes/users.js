@@ -3,6 +3,7 @@ var bodyParser=require("body-parser");
 var router = express.Router();
 var User=require("../models/user");
 var passport=require("passport");
+var authenticate=require("../authenticate");
 router.use(bodyParser.json());
 
 
@@ -39,11 +40,15 @@ router.post("/signup",(req,res,next)=>{
 
 //when post request comes with username and pass password.authenticate ("local") will be called and if succesfull login then
 //it goes to next(req,res) otherwise it will send the error to client on its own.
+
+
+//Earlier We were creating sessions when user loggid in succesfully so instead of this we will now create 
+//and assign token using get token method we implemented by assigning user is to it as paramater and pass back to user
 router.post("/login",passport.authenticate('local'),(req,res)=>{
+  var token=authenticate.getToken({_id:req.user._id})
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.json({success: true, status: 'You are succesfully logged in'});
-
+  res.json({success: true, status: 'You are succesfully logged in',token:token});
 });
 
 

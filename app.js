@@ -13,6 +13,7 @@ var session=require("express-session");
 var FileStore=require("session-file-store")(session) ;
 var passport=require("passport");
 var authenticate=require("./authenticate");
+var config=require("./config");
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishesRouter = require('./routes/dishRouter');
@@ -22,7 +23,7 @@ var leadersRouter = require('./routes/leaderRouter');
 //To establish coneection to mongodb server with mongoose
 const mongoose=require("mongoose");
 const Dishes =require("./models/dishes");
-const url = 'mongodb://localhost:27017/conFusion';
+const url = config.mongoUrl;
 const connect=mongoose.connect(url);
 connect.then((db)=>{
   console.log("Connected to the Database")
@@ -39,14 +40,6 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 //app.use(cookieParser("12345-67890-09876-54321"));
-app.use(session({
-  name: 'session-id',
-  secret: '12345-67890-09876-54321',
-  saveUninitialized: false,
-  resave: false,
-  //we will use FileStore object we created above
-  store: new FileStore()
-}));
 
 
 
@@ -55,36 +48,16 @@ app.use(session({
 //passport session that we have done below will automatically serialize that user information and store it into session
 //and when next time user sends session cookie then this will load req.user automaticallyu in request
 app.use(passport.initialize());
-app.use(passport.session());
+
 
 //Before login/authenticating user can only acess index or user router
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-function auth(req,res,next){
 
-  //req.user is loaded by passport
-  if(!req.user) {
-    var err = new Error('You are not authenticated!');
-    err.status = 403;
-    return next(err);
-}
-  else {
-    //in user.js upon succesfull authentication we have set user to authenticated so wil check that here
-    //if req.user is not present that means authentication is not done correctly otherwise if it is present then passport has already
-    //verified the user and authenticated
-      next();
-   
-  }
-  
-
-}
-
-//Authentication first
-app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 
-
+//Now we are going to restrict only some routes instead of all endpoints
 
 app.use("/dishes",dishesRouter);
 app.use("/leaders",leadersRouter);
