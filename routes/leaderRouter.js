@@ -3,13 +3,13 @@ const bodyParser=require("body-parser");
 const mongoose=require("mongoose");
 const Leaders=require("../models/leaders");
 const authenticate=require("../authenticate");
-
+const cors=require("./cors");
 const leaderRouter=express.Router();
 leaderRouter.use(bodyParser.json());
 leaderRouter.route("/")
 //we dont need app.all here because route is working.and also /Leaders is not needed
-
-.get((req,res,next)=>{
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
+.get(cors.cors,(req,res,next)=>{
     Leaders.find({})
     .then((leaders)=>{
         res.statusCode=200;
@@ -22,7 +22,7 @@ leaderRouter.route("/")
 
 //now if we get a post request for Leaders then app.all will execute firstly and because of next that will be dropped to this post
 //because this is post request body will contain some information in json format
-.post(authenticate.verifyUser,(req,res,next)=>{
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     Leaders.create(req.body)
     .then((leader)=>{
         res.statusCode=200,
@@ -34,13 +34,13 @@ leaderRouter.route("/")
 })
 
 
-.put(authenticate.verifyUser,(req,res,next)=>{
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     res.statusCode=403;
     res.end("Put Not Supported")
 
 })
 
-.delete(authenticate.verifyUser,(req,res,next)=>{
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     Leaders.remove({})
     .then((resp)=>{
         res.statusCode=200,
@@ -52,9 +52,9 @@ leaderRouter.route("/")
 });
 
 leaderRouter.route("/:leaderId")
-
+.options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
 //if parameter comes in like leaderId we can refer this id by accessing req.params.param_name
-.get((req,res,next)=>{
+.get(cors.cors,(req,res,next)=>{
     Leaders.findById(req.params.leaderId)
     .then((leader)=>{
         res.statusCode=200;
@@ -66,14 +66,14 @@ leaderRouter.route("/:leaderId")
 
 //now if we get a post request for Leaders then app.all will execute firstly and because of next that will be dropped to this post
 //because this is post request body will contain some information in json format
-.post(authenticate.verifyUser,(req,res,next)=>{
+.post(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     res.statusCode=403;
     res.end("Post Not Supported on " + req.params.leaderId  )
 
 })
 
 
-.put(authenticate.verifyUser,(req,res,next)=>{
+.put(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     Leaders.findByIdAndUpdate(req.params.leaderId,{$set:req.body},{new:true})
     .then((leader)=>{
         res.statusCode=200;
@@ -84,7 +84,7 @@ leaderRouter.route("/:leaderId")
     
 })
 
-.delete(authenticate.verifyUser,(req,res,next)=>{
+.delete(cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin,(req,res,next)=>{
     Leaders.findByIdAndRemove(req.params.leaderId)
     .then((resp)=>{
         res.statusCode=200;

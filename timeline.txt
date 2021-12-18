@@ -9,3 +9,9 @@
 9.we handled each http request for dishes ,leaders,promotions connecting to database.
 10.then we created basic authentication saw cookie and sessions.
 11.we have to now create new user new schema to enter new user into database.
+12.after using passport to admin and normal user we will noe use https.
+13.in bin folder run ssl command prompt 
+openssl genrsa 1024 > private.key //1024 size key in private.key file
+openssl req -new -key private.key -out cert.csr //from private key cert is generated
+openssl x509 -req -in cert.csr -signkey private.key -out certificate.pem  //Distribution certificate will be generated
+14.Then to configure https goto www in bin

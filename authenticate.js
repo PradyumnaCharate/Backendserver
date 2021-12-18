@@ -43,7 +43,7 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
     console.log("JWT payload: ",jwt_payload);
     User.findOne({_id:jwt_payload._id},(err,user)=>{
         if(err){
-            //passport will bass this done to ur strategy
+            //passport will pass this done to ur strategy
             //done takes 3 parameters.1.error if any 2.If user exists then user will be passed 3.info 
             return done(err,false)//false because there is an error.
         }
@@ -73,3 +73,18 @@ exports.verifyUser=passport.authenticate("jwt",{session:false});
 
 //After succesfull login client will get token and for each request afterwards it wil include it in authentication header.
 //opts.JwtFromRequest=ExtractJwt.fromAuthHeaderAsBearerToken(); this happens becuase due to this line 
+
+
+
+exports.verifyAdmin=function(req,res,next){
+    if (req.user.admin){
+        next();
+    }
+    else{
+        err = new Error("You are not authorized to perform this operation!");
+        err.status = 403;
+        return next(err);         
+    }
+
+}
+

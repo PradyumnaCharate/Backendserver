@@ -19,6 +19,8 @@ var usersRouter = require('./routes/users');
 var dishesRouter = require('./routes/dishRouter');
 var promotionsRouter = require('./routes/promotionRouter');
 var leadersRouter = require('./routes/leaderRouter');
+var uploadRouter = require('./routes/uploadRouter');
+
 
 //To establish coneection to mongodb server with mongoose
 const mongoose=require("mongoose");
@@ -31,6 +33,23 @@ connect.then((db)=>{
 
 
 var app = express();
+// Secure traffic only this will redirect every request coming *(all paths).
+app.all('*', (req, res, next) => {
+  if (req.secure) {//this will true if request coming is to secure port already 
+    return next();
+  }
+  else {//307 means try same (original) request method like get because we are redirecting
+    res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort') + req.url);
+  }
+});// Secure traffic only
+app.all('*', (req, res, next) => {
+  if (req.secure) {
+    return next();
+  }
+  else {
+    res.redirect(307, 'https://' + req.hostname + ':' + app.get('secPort') + req.url);
+  }
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -53,6 +72,7 @@ app.use(passport.initialize());
 //Before login/authenticating user can only acess index or user router
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use("/imageUpload",uploadRouter);
 
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -62,6 +82,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use("/dishes",dishesRouter);
 app.use("/leaders",leadersRouter);
 app.use("/promotions",promotionsRouter);
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -5,17 +5,25 @@ var User=require("../models/user");
 var passport=require("passport");
 var authenticate=require("../authenticate");
 router.use(bodyParser.json());
-
+const cors=require("./cors")
 
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+
+router.get('/',cors.corsWithOptions,authenticate.verifyUser,authenticate.verifyAdmin, function(req, res, next) {
+  User.find({})
+  .then((users) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json(users);
+}, (err) => next(err))
+.catch((err) => next(err));
+
 });
 
 
 //this is for /user/signup 
-router.post("/signup",(req,res,next)=>{
+router.post("/signup",cors.corsWithOptions,(req,res,next)=>{
  //mongoose plugin we used provide some methods to signup(register)=>which takes username and password from request as parameters and return to callback function error and new user
 // passport expects yoy to do it this way
   User.register(new User({username: req.body.username}), 
@@ -26,10 +34,24 @@ router.post("/signup",(req,res,next)=>{
     res.json({err: err});
   }
   else {
-    passport.authenticate('local')(req, res, () => {
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      res.json({success: true, status: 'Registration Successful!'});
+    if (req.body.firstname)
+      user.firstname = req.body.firstname;
+    if (req.body.lastname)
+      user.lastname = req.body.lastname;
+    user.save((err,user)=>{
+      if(err){
+        res.statusCode = 500;
+        res.setHeader('Content-Type', 'application/json');
+        res.json({err: err});
+        return;
+      }
+      passport.authenticate('local')(req, res, () => {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json({success: true, status: 'Registration Successful!'});
+
+    });
+
     });
   }
 });
@@ -44,7 +66,7 @@ router.post("/signup",(req,res,next)=>{
 
 //Earlier We were creating sessions when user loggid in succesfully so instead of this we will now create 
 //and assign token using get token method we implemented by assigning user is to it as paramater and pass back to user
-router.post("/login",passport.authenticate('local'),(req,res)=>{
+router.post("/login",cors.corsWithOptions,passport.authenticate('local'),(req,res)=>{
   var token=authenticate.getToken({_id:req.user._id})
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
