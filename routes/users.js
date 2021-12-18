@@ -57,7 +57,17 @@ router.post("/signup",cors.corsWithOptions,(req,res,next)=>{
 });
 
 });
+router.get("/facebook/token",passport.authenticate("facebook-token"),(req,res)=>{//if facebook token is authenticated
+  //then req will contain req.user
+  if(req.user){
+    var token=authenticate.getToken({_id:req.user._id});
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.json({success: true, status: 'You are succesfully logged in',token:token});
 
+  }
+
+})
 //passport expects user and pass to be in requests body and not in authorization header unlike we were doing it previously
 
 //when post request comes with username and pass password.authenticate ("local") will be called and if succesfull login then

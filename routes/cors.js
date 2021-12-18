@@ -14,7 +14,7 @@ var corsOptionsDelegate=(req,callback)=>{
             corsOptions={origin:false};//DOnt access that particular origin
         }
         callback(null,corsOptions)
-    }
+    };
  
 exports.cors=cors();//Exporting normal cors without configuring (Random url allowed for get requests)
 exports.corsWithOptions=cors(corsOptionsDelegate);//(configured cors)

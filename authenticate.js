@@ -7,6 +7,7 @@ var JwtStrategy=require("passport-jwt").Strategy;
 var ExtractJwt=require("passport-jwt").ExtractJwt;
 var jwt=require("jsonwebtoken");
 var config=require("./config");
+var FacebookTokenStrategy=require("passport-facebook-token");
 
 
 //passport extract  username and password from message body use and supply parameters to verify function we will supply to local strategy 
@@ -87,4 +88,43 @@ exports.verifyAdmin=function(req,res,next){
     }
 
 }
+
+//Here to signup or login with facebook we will implement facebook strategy 
+exports.facebookPassport=passport.use(new FacebookTokenStrategy({
+    
+        clientID:config.facebook.clientID,
+        clientSecret:config.facebook.clientSecret  
+    },//This is 1st parameter clientID and client Secret of our app saved in config file
+    //this has callback function and 4 parameters will be passed.    
+    (acesssToken,refreshToken,profile,done)=>{//profile will contain lot of information about the user.  
+        User.findOne({facebookId:profile.id},(err,user)=>{
+            if(err){
+                done(err,false);
+            }
+            if(!err && user!=null){//that means we have found user in the database already having acct  
+                return done(null,user);
+            }
+            else{//if there is no error or there is no user found then new user must be created 
+                user=new User({username:profile.displayName});//profile object came from facebook will have display name field
+                user.facebookId=profile.id;
+                user.firstname=profile.name.givenName;
+                user.lastname=profile.name.familyName;
+                user.save((err,user)=>{
+                    if(err){
+                        return done(false,null);
+                    }
+                    else{
+                        return(null,user);
+                    }
+                })
+            }
+
+        });
+         
+    }
+
+
+));
+
+
 
